@@ -34,16 +34,13 @@ class boggle:
     def isBoggleable(self, word, prevPos=None, depth=0):
         #Recursive function to check if a word can be made from the board
         def isAdjacent(c1, c2):
-            if c2==None: return True
-            if c1[0]-1 == c2[0] and c1[1] == c2[1]: return True
-            elif c1[0] == c2[0] and c1[1]-1 == c2[1]: return True
-            elif c1[0]-1 == c2[0] and c1[1]-1 == c2[1]: return True
-            elif c1[0]+1 == c2[0] and c1[1] == c2[1]: return True
-            elif c1[0] == c2[0] and c1[1]+1 == c2[1]: return True
-            elif c1[0]+1 == c2[0] and c1[1]+1 == c2[1]: return True
-            elif c1[0]+1 == c2[0] and c1[1]-1 == c2[1]: return True
-            elif c1[0]-1 == c2[0] and c1[1]+1 == c2[1]: return True
-            else: return False
+            if c2==None:
+                return True
+            for dx, dy in [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]:
+                if c1[0]+dx == c2[0] and c1[1]+dy == c2[1]:
+                    return True
+            return False
+        
         items = []
         for row, i in enumerate(self.board):
             try:
