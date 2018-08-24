@@ -22,25 +22,40 @@ class boggle:
     def getAnswers(self):
         #Get the answers from the user input
         answers, score = set([i for i in input("Words: ").split()]), 0
-        answers = self.listEnglishWords(answers)
+        answers = self.onlyEnglishWords(answers)
         for i in answers:
-            #print(i, self.isBoggleable(i))
             if self.isBoggleable(i):
                 score += self.SCORING.get(len(i), 0)
                 if len(i) >= max(self.SCORING, key=int):
                     score += self.SCORING[max(self.SCORING, key=int)]
+                print("{} is correct, scoring: {}".format(i, self.SCORING.get(len(i), 0)))
+            else:
+                print("{} is incorrect".format(i))
         return score
 
-    def isBoggleable(self, word, prevPos=None, depth=0):
-        #Recursive function to check if a word can be made from the board
-        def isAdjacent(c1, c2):
-            if c2==None:
-                return True
+
+    def isBoggleable(self, word, depth=0):
+        #A function to check if a word can be made on a boggle board
+
+        def getAdjacent(pos):
+            #A helper function that given a position on the board, returns a
+            #dictionary with a key of adjacent letters, and a value of a list
+            #of adjacent positions
+            adj = {}
             for dx, dy in [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]:
-                if c1[0]+dx == c2[0] and c1[1]+dy == c2[1]:
-                    return True
-            return False
-        
+                if (pos[0]+dx<0 or pos[0]+dx>=self.size) or (pos[1]+dy<0 or pos[1]+dy>=self.size):
+                    continue
+                else:
+                    x = pos[0]+dx
+                    y = pos[1]+dy
+                    letter = self.board[y][x]
+                    if letter in adj:
+                        adj[letter].append((x,y))
+                    else:
+                        adj[letter] = [(x,y)]
+            return adj
+
+        letter = word[depth]
         items = []
         for row, i in enumerate(self.board):
             try:
@@ -48,13 +63,19 @@ class boggle:
             except:
                 continue
             for column in columns:
-                items.append([row, column])
-        for i in items:
-            if isAdjacent(i, prevPos):
-                if self.isBoggleable(word, i, depth+1):
-                    return True
-                elif len(word)==depth+2:
-                    return True
+                items.append([column, row])
+
+        try:
+            nextLetter = word[depth+1].upper()
+        except IndexError:
+            return True
+
+        for item in items:
+            adj = getAdjacent(item)
+            if nextLetter in adj:
+                for nextPos in adj[nextLetter]:
+                    if self.isBoggleable(word, depth+1):
+                        return True
         return False
 
     def listEnglishWords(self, words):
