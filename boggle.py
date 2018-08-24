@@ -65,10 +65,9 @@ class boggle:
             for column in columns:
                 items.append([column, row])
 
-        try:
-            nextLetter = word[depth+1].upper()
-        except IndexError:
+        if len(word) == depth+1:
             return True
+        nextLetter = word[depth+1].upper()
 
         for item in items:
             adj = getAdjacent(item)
