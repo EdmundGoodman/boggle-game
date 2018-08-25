@@ -48,33 +48,42 @@ class boggle:
                 else:
                     x = pos[0]+dx
                     y = pos[1]+dy
-                    letter = self.board[y][x]
+                    letter = self.board[y][x][0]
                     if letter in adj:
                         adj[letter].append((x,y))
                     else:
                         adj[letter] = [(x,y)]
             return adj
 
+        #Get the every position of the current letter on the board
         letter = word[depth]
         items = []
         for row, i in enumerate(self.board):
             try:
-                columns = [n for n,val in enumerate(i) if val==word[depth].upper()]
+                columns = [n for n,val in enumerate(i) if val[0]==letter.upper()]
             except:
                 continue
             for column in columns:
                 items.append([column, row])
 
+        #At the end of the word, exit
         if len(word) == depth+1:
             return True
+
+        #If the letter is a q, skip the following 'u', as the dice is 'Qu'
+        if letter == "q":
+            depth += 1
         nextLetter = word[depth+1].upper()
 
+        #For each possible next letter, create a branch of the search tree
         for item in items:
             adj = getAdjacent(item)
             if nextLetter in adj:
                 for nextPos in adj[nextLetter]:
                     if self.isBoggleable(word, depth+1):
                         return True
+
+        #If the next letter isn't found, the word is invalid
         return False
 
     def listEnglishWords(self, words):
