@@ -19,7 +19,7 @@ class boggle:
     def inputBoard(self):
         self.board = [[input("Letter: ")[0].upper() for _ in range(self.size)] for _ in range(self.size)]
         self.board = ['Qu' if x=='Q' else x for x in self.board]
-        
+
     def displayBoard(self):
         #Print the board
         for y in self.board:
@@ -113,7 +113,7 @@ class boggle:
 
     def win(self):
         #Win at boggle, by finding every possible valid word on the grid
-        os.system('cls')
+        os.system('clear')
         self.inputBoard()
         self.displayBoard()
 
@@ -138,7 +138,19 @@ class boggle:
         score = self.scoreAnswers(validWordsString, False)
         print("You scored: ", score)
 
+    def menu(self):
+        os.system('clear')
+        print("Do you want to:")
+        print("\t1) Play a round")
+        print("\t2) Find all valid words on a board")
+        option = input("Enter an option number: ")
+        if option == "1":
+            self.play()
+        elif option == "2":
+            self.win()
+        else:
+            print("Invalid option")
+
 
 game = boggle()
-game.play()
-game.win()
+game.menu()
