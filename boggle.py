@@ -1,7 +1,6 @@
 #Edmund Goodman - Creative Commons Attribution-NonCommercial-ShareAlike 2.5
-#Boggle Game
 from random import choice
-import os, time
+import os, time, re
 
 class boggle:
     def __init__(self):
@@ -11,30 +10,46 @@ class boggle:
         self.BOGGLEDICE = ['AACIOT','ABILTY','ABJMOQ','ACDEMP','ACELRS','ADENVZ','AHMORS',
         'BIFORX','DENOSW','DKNOTU','EEFHIY','EGKLUY','EGINTV','EHINPS','ELPSTU','GILRUW']
         self.size = 4
+
+    def generateRandomBoard(self):
+        #Randomly generate the board, via the dice, then arrange it into a square
         self.board = ['Qu' if x=='Q' else x for x in [choice(i) for i in self.BOGGLEDICE]]
         self.board = [self.board[i:i+self.size] for i in range(0,len(self.board),self.size)]
 
+    def inputBoard(self):
+        self.board = [[input("Letter: ")[0].upper() for _ in range(self.size)] for _ in range(self.size)]
+        self.board = ['Qu' if x=='Q' else x for x in self.board]
+        
     def displayBoard(self):
         #Print the board
         for y in self.board:
             print(y)
 
-    def getAnswers(self):
+    def scoreAnswers(self, answers, verbose=True):
         #Get the answers from the user input
-        answers, score = set([i for i in input("Words: ").split()]), 0
-        answers = self.onlyEnglishWords(answers)
+        score = 0
+        answers = self.onlyEnglishWords( set([i for i in answers.split()]) )
         for i in answers:
             if self.isBoggleable(i):
-                score += self.SCORING.get(len(i), 0)
-                if len(i) >= max(self.SCORING, key=int):
-                    score += self.SCORING[max(self.SCORING, key=int)]
-                print("{} is correct, scoring: {}".format(i, self.SCORING.get(len(i), 0)))
+                if len(i) <= max(self.SCORING, key=int):
+                    wordScore = self.SCORING.get(len(i), 0)
+                else:
+                    wordScore = self.SCORING[max(self.SCORING, key=int)]
+                score += wordScore
+                if verbose:
+                    print("{} is correct, scoring: {}".format(i, wordScore))
             else:
-                print("{} is incorrect".format(i))
+                if verbose:
+                    print("{} is incorrect".format(i))
         return score
 
+    def onlyEnglishWords(self, words):
+        #Return all the words in the input list which are in the dictionary 'wordList' file
+        with open("../gameWinners/wordList.txt") as wordFile:
+            englishWords = set(word.strip().lower() for word in wordFile)
+        return [word for word in words if word in englishWords]
 
-    def isBoggleable(self, word, depth=0):
+    def isBoggleable(self, word, prevPos=[], depth=0):
         #A function to check if a word can be made on a boggle board
 
         def getAdjacent(pos):
@@ -80,24 +95,50 @@ class boggle:
             adj = getAdjacent(item)
             if nextLetter in adj:
                 for nextPos in adj[nextLetter]:
-                    if self.isBoggleable(word, depth+1):
+                    if self.isBoggleable(word, prevPos+[nextPos], depth+1):
+                        #print(prevPos, depth)
                         return True
 
         #If the next letter isn't found, the word is invalid
         return False
 
-    def listEnglishWords(self, words):
-        #Return all the words in the input list which are in the dictionary 'wordList' file
-        with open("wordList.txt") as wordFile:
-            englishWords = set(word.strip().lower() for word in wordFile)
-        return [word for word in words if word in englishWords]
-
     def play(self):
         #Play the game
         os.system('clear')
+        self.generateRandomBoard()
         self.displayBoard()
-        score = self.getAnswers()
+        answers = input("Words: ")
+        score = self.scoreAnswers(answers)
         print("You scored: ", score)
+
+    def win(self):
+        #Win at boggle, by finding every possible valid word on the grid
+        os.system('cls')
+        self.inputBoard()
+        self.displayBoard()
+
+        #Read in all the allowed words
+        with open("../gameWinners/wordList.txt") as wordFile:
+            possibleWords = [x.strip().lower() for x in wordFile if len(x)>3]
+
+        #Flatten the board
+        validLetters = sum(self.board, [])
+        regex = "^[" + "".join(validLetters).lower() + "]*$"
+        pattern = re.compile(regex)
+        possibleWords = [x for x in possibleWords if bool(pattern.match(x))]
+
+        validWords = []
+        for word in possibleWords:
+            if self.isBoggleable(word):
+                validWords.append(word)
+
+        validWordsString = " ".join(validWords)
+        print("Words: ", validWordsString)
+
+        score = self.scoreAnswers(validWordsString, False)
+        print("You scored: ", score)
+
 
 game = boggle()
 game.play()
+game.win()
