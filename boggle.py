@@ -1,32 +1,38 @@
 #Edmund Goodman - Creative Commons Attribution-NonCommercial-ShareAlike 2.5
 from random import choice
-import os, time, re
+import time
+import re
 
 class boggle:
     def __init__(self):
-        #Initialise variables
+        """Initialise all the state variables"""
         self.SCORING = { 3:1, 4:1, 5:2, 6:3, 7:4, 8:11 }
         #The actual boggle dice values are used to most accurately simulate the game
         self.BOGGLEDICE = ['AACIOT','ABILTY','ABJMOQ','ACDEMP','ACELRS','ADENVZ','AHMORS',
         'BIFORX','DENOSW','DKNOTU','EEFHIY','EGKLUY','EGINTV','EHINPS','ELPSTU','GILRUW']
         self.size = 4
+        self.board = [["_" for _ in range(self.size)] for _ in range(self.size)]
 
     def generateRandomBoard(self):
-        #Randomly generate the board, via the dice, then arrange it into a square
+        """Randomly generate the board, via the dice, then arrange it into a square"""
         self.board = ['Qu' if x=='Q' else x for x in [choice(i) for i in self.BOGGLEDICE]]
         self.board = [self.board[i:i+self.size] for i in range(0,len(self.board),self.size)]
 
     def inputBoard(self):
-        self.board = [[input("Letter: ")[0].upper() for _ in range(self.size)] for _ in range(self.size)]
-        self.board = ['Qu' if x=='Q' else x for x in self.board]
+        """Read the board"""
+        for y in range(self.size):
+            for x in range(self.size):
+                self.displayBoard()
+                letter = input("Enter the letter at position ({},{}): ".format(x+1, y+1))
+                self.board[y][x] = 'Qu' if letter == 'Q' else letter
 
     def displayBoard(self):
-        #Print the board
+        """Print the board"""
         for y in self.board:
             print(y)
 
     def scoreAnswers(self, answers, verbose=True):
-        #Get the answers from the user input
+        """Get the answers from the user input"""
         score = 0
         answers = self.onlyEnglishWords( set([i for i in answers.split()]) )
         for i in answers:
@@ -44,13 +50,13 @@ class boggle:
         return score
 
     def onlyEnglishWords(self, words):
-        #Return all the words in the input list which are in the dictionary 'wordList' file
-        with open("../gameWinners/wordList.txt") as wordFile:
+        """Return all the words in the input list which are in the dictionary 'wordList' file"""
+        with open("./wordList.txt") as wordFile:
             englishWords = set(word.strip().lower() for word in wordFile)
         return [word for word in words if word in englishWords]
 
     def isBoggleable(self, word, prevPos=[], depth=0):
-        #A function to check if a word can be made on a boggle board
+        """A function to check if a word can be made on a boggle board"""
 
         def getAdjacent(pos):
             #A helper function that given a position on the board, returns a
@@ -103,8 +109,7 @@ class boggle:
         return False
 
     def play(self):
-        #Play the game
-        os.system('clear')
+        """Play the game"""
         self.generateRandomBoard()
         self.displayBoard()
         answers = input("Words: ")
@@ -112,13 +117,12 @@ class boggle:
         print("You scored: ", score)
 
     def win(self):
-        #Win at boggle, by finding every possible valid word on the grid
-        os.system('clear')
+        """Win at boggle, by finding every possible valid word on the grid"""
         self.inputBoard()
         self.displayBoard()
 
         #Read in all the allowed words
-        with open("../gameWinners/wordList.txt") as wordFile:
+        with open("./wordList.txt") as wordFile:
             possibleWords = [x.strip().lower() for x in wordFile if len(x)>3]
 
         #Flatten the board
@@ -139,7 +143,6 @@ class boggle:
         print("You scored: ", score)
 
     def menu(self):
-        os.system('clear')
         print("Do you want to:")
         print("\t1) Play a round")
         print("\t2) Find all valid words on a board")
