@@ -1,7 +1,9 @@
 #Edmund Goodman - Creative Commons Attribution-NonCommercial-ShareAlike 2.5
-from random import choice
+from random import choice, seed
 import time
 import re
+
+seed(0)
 
 class boggle:
     def __init__(self):
@@ -57,7 +59,7 @@ class boggle:
             englishWords = set(word.strip().lower() for word in wordFile)
         return [word for word in words if word in englishWords]
 
-    def isBoggleable(self, word, prevPos=[], depth=0):
+    def isBoggleable(self, word, prevPos=[], depth=0, repeats=False):
         """A function to check if a word can be made on a boggle board"""
 
         def getAdjacent(pos):
@@ -105,9 +107,10 @@ class boggle:
             adj = getAdjacent(item)
             if nextLetter in adj:
                 for nextPos in adj[nextLetter]:
-                    if self.isBoggleable(word, prevPos+[nextPos], depth+1):
-                        #print(prevPos, depth)
-                        return True
+                    if repeats or not (nextPos in prevPos):
+                        return self.isBoggleable(
+                            word, prevPos+[nextPos], depth+1, repeats
+                        )
 
         #If the next letter isn't found, the word is invalid
         return False
@@ -129,7 +132,7 @@ class boggle:
 
     def win(self):
         """Win at boggle, by finding every possible valid word on the grid"""
-        self.inputBoard()
+        self.generateRandomBoard()
         self.displayBoard()
         
         #Get all valid words and score them
