@@ -23,8 +23,10 @@ class boggle:
         for y in range(self.size):
             for x in range(self.size):
                 self.displayBoard()
-                letter = input("Enter the letter at position ({},{}): ".format(x+1, y+1))
-                self.board[y][x] = 'Qu' if letter == 'Q' else letter
+                letter = input("Enter the letter at position ({},{}): ".format(
+                    x+1, y+1
+                )).upper()
+                self.board[y][x] = 'QU' if letter == 'Q' else letter
 
     def displayBoard(self):
         """Print the board"""
@@ -59,12 +61,14 @@ class boggle:
         """A function to check if a word can be made on a boggle board"""
 
         def getAdjacent(pos):
-            #A helper function that given a position on the board, returns a
+            """A helper function that given a position on the board, returns a
             #dictionary with a key of adjacent letters, and a value of a list
-            #of adjacent positions
+            #of adjacent positions"""
             adj = {}
             for dx, dy in [(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]:
-                if (pos[0]+dx<0 or pos[0]+dx>=self.size) or (pos[1]+dy<0 or pos[1]+dy>=self.size):
+                xTerm = (pos[0]+dx<0 or pos[0]+dx>=self.size)
+                yTerm = (pos[1]+dy<0 or pos[1]+dy>=self.size)
+                if xTerm or yTerm:
                     continue
                 else:
                     x = pos[0]+dx
@@ -82,7 +86,7 @@ class boggle:
         for row, i in enumerate(self.board):
             try:
                 columns = [n for n,val in enumerate(i) if val[0]==letter.upper()]
-            except:
+            except Exception:
                 continue
             for column in columns:
                 items.append([column, row])
@@ -108,6 +112,7 @@ class boggle:
         #If the next letter isn't found, the word is invalid
         return False
 
+
     def play(self):
         """Play the game"""
         self.generateRandomBoard()
@@ -116,31 +121,36 @@ class boggle:
         score = self.scoreAnswers(answers)
         print("You scored: ", score)
 
+        validWords = self.getAllValidWords()
+        validWordsString = " ".join(validWords)
+        print("The valid words were: ", validWordsString)
+        score = self.scoreAnswers(validWordsString, False)
+        print("Giving a maximum score of: ", score)
+
     def win(self):
         """Win at boggle, by finding every possible valid word on the grid"""
         self.inputBoard()
         self.displayBoard()
+        
+        #Get all valid words and score them
+        validWords = self.getAllValidWords()
+        validWordsString = " ".join(validWords)
+        print("Words: ", validWordsString)
+        score = self.scoreAnswers(validWordsString, False)
+        print("You scored: ", score)
 
+    def getAllValidWords(self, wordListName="./wordList.txt"):
         #Read in all the allowed words
-        with open("./wordList.txt") as wordFile:
+        with open(wordListName) as wordFile:
             possibleWords = [x.strip().lower() for x in wordFile if len(x)>3]
-
         #Flatten the board
         validLetters = sum(self.board, [])
+        #Remove any words containing letters which are not on the board
         regex = "^[" + "".join(validLetters).lower() + "]*$"
         pattern = re.compile(regex)
         possibleWords = [x for x in possibleWords if bool(pattern.match(x))]
-
-        validWords = []
-        for word in possibleWords:
-            if self.isBoggleable(word):
-                validWords.append(word)
-
-        validWordsString = " ".join(validWords)
-        print("Words: ", validWordsString)
-
-        score = self.scoreAnswers(validWordsString, False)
-        print("You scored: ", score)
+        #Filter out non-boggleable words
+        return [word for word in possibleWords if self.isBoggleable(word)]
 
     def menu(self):
         print("Do you want to:")
